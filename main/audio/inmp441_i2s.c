@@ -32,13 +32,16 @@ esp_err_t inmp441_i2s_init(const inmp441_i2s_config_t *config)
     ESP_LOGI(TAG, "Initializing INMP441 I2S driver...");
 
     // 2. 配置I2S通道
-    i2s_chan_config_t chan_cfg = {
-        .id = I2S_NUM_AUTO,
-        .role = I2S_ROLE_MASTER,
-        .dma_desc_num = DMA_DESC_NUM,
-        .dma_frame_num = DMA_FRAME_NUM,
-        .auto_clear = true, // 当缓冲区满时自动清除旧数据
-    };
+    // i2s_chan_config_t chan_cfg = {
+    //     .id = I2S_NUM_0, // 使用I2S0
+    //     .role = I2S_ROLE_MASTER,
+    //     .dma_desc_num = DMA_DESC_NUM,
+    //     .dma_frame_num = DMA_FRAME_NUM,
+    //     .auto_clear = true, // 当缓冲区满时自动清除旧数据
+    // };
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+    chan_cfg.dma_desc_num = DMA_DESC_NUM;
+    chan_cfg.dma_frame_num = DMA_FRAME_NUM;
     ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, NULL, &s_rx_chan));
 
     // 3. 配置I2S标准模式

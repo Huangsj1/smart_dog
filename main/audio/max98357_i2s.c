@@ -30,8 +30,8 @@ esp_err_t max98357_i2s_init(const max98357_i2s_config_t *config)
 
     ESP_LOGI(TAG, "Initializing MAX98357 I2S driver...");
 
-    // 2. 配置I2S通道
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_AUTO, I2S_ROLE_MASTER);
+    // 2. 配置I2S通道（使用1号I2S）
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_1, I2S_ROLE_MASTER);
     chan_cfg.dma_desc_num = DMA_DESC_NUM;
     chan_cfg.dma_frame_num = DMA_FRAME_NUM;
     ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, &s_tx_chan, NULL)); // 创建 TX 通道

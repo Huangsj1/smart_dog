@@ -3,11 +3,17 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_psram.h"
+#include "driver/i2s_std.h"
+#include "esp_task_wdt.h"
 
 #include "network/include/wifi.h"
 #include "network/include/http_request.h"
 #include "network/include/websocket_client.h"
 #include "audio/include/audio_echo.h"
+#include "audio/include/inmp441_i2s.h"
+#include "audio/include/max98357_i2s.h"
+#include "audio/include/i2s_pins.h"
+#include "sr/include/sr.h"
 
 static const char *TAG = "app_main";
 
@@ -17,18 +23,34 @@ void test_psram();
 void test_websocket();
 void test_echo();
 
+
 void app_main(void)
 {
     ESP_LOGI(TAG, "app_main started ---------------------------------------");
+    // 初始化NVS. Wi-Fi驱动依赖于NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+      ESP_ERROR_CHECK(nvs_flash_erase());
+      ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
     test_psram();
     ESP_LOGI(TAG, "------------------------------------------------------");
     // test_websocket();
     // ESP_LOGI(TAG, "------------------------------------------------------");
-    test_echo();
+    // test_echo();
+    
+    sr_start();
+
+    // afe_config_free(afe_config);
 
     ESP_LOGI(TAG, "app_main finished ---------------------------------------");
 }
+
+
+
+// ------------------------------------------------------------------------------------------------
 
 void test_echo() {
     ESP_LOGI(TAG, "Testing audio echo...");
@@ -70,13 +92,13 @@ void test_psram() {
 void test_websocket() {
     ESP_LOGI(TAG, "Testing WebSocket client...");
 
-    // 初始化NVS. Wi-Fi驱动依赖于NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    // // 初始化NVS. Wi-Fi驱动依赖于NVS
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    //   ESP_ERROR_CHECK(nvs_flash_erase());
+    //   ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK(ret);
 
     // 调用Wi-Fi模块的初始化函数，扫描并连接wifi（非阻塞的）
     ESP_LOGI(TAG, "Wi-Fi initialization...");
