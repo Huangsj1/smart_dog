@@ -89,7 +89,20 @@ smart_dog_v1/
 - **操作系统**: macOS
 - **ESP-IDF版本**: v6.0.0
 - **开发框架**: ESP-IDF开发框架
-- **芯片**: ESP32-S3
+- **芯片**: ESP32-S3 N16R8
+
+## menuconfig 配置
+* Serial flasher config: 
+  * Flash size: 16MB
+* ESP Speech Recognition
+  * Load Multiple Wake Words: 设置需要的唤醒词
+* Component config
+  * ESP PSRAM：开启PSRAM
+  * SPI RAM config
+    * Octal Mode PSRAM：设置8线模式（4线会报错）
+  * ESP System Settings:
+    * Memory protection: 
+      * Task Watchdog timeout period (seconds): 10（延长看门狗时间，否则等待连接时容易报错）  
 
 
 ## 📡 网络配置
