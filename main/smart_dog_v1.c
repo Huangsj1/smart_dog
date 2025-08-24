@@ -23,6 +23,9 @@ void test_psram();
 void test_websocket();
 void test_echo();
 
+void test_receive_audio();
+void test_send_audio();
+
 
 void app_main(void)
 {
@@ -41,11 +44,127 @@ void app_main(void)
     // ESP_LOGI(TAG, "------------------------------------------------------");
     // test_echo();
     
-    sr_start();
-
-    // afe_config_free(afe_config);
+    test_send_audio();
+    // test_receive_audio();
 
     ESP_LOGI(TAG, "app_main finished ---------------------------------------");
+}
+
+
+
+
+void test_receive_audio() {
+    // 1. 配置 INMP441 录音驱动
+    inmp441_i2s_config_t inmp441_config = {
+        .gpio_bclk = EXAMPLE_I2S_BCLK_IO1,
+        .gpio_ws = EXAMPLE_I2S_WS_IO1,
+        .gpio_din = EXAMPLE_I2S_DIN_IO1,
+        .sample_rate = 16000,
+        .bits_per_sample = I2S_DATA_BIT_WIDTH_16BIT,
+        .channel_mode = INMP441_CHANNEL_LEFT, // 假设使用左声道
+        // .channel_mode = INMP441_CHANNEL_RIGHT, // 假设使用右声道
+    };
+
+    // 2. 配置 MAX98357 播放驱动
+    max98357_i2s_config_t max98357_config = {
+        .gpio_bclk = EXAMPLE_I2S_BCLK_IO2,
+        .gpio_ws = EXAMPLE_I2S_WS_IO2,
+        .gpio_dout = EXAMPLE_I2S_DOUT_IO2,
+        .sample_rate = 16000,
+        .bits_per_sample = I2S_DATA_BIT_WIDTH_16BIT,
+        .channel_mode = MAX98357_CHANNEL_MONO, // 使用单声道
+        .slot_mask = MAX98357_MASK_LEFT, // 使用左声道输出
+    };
+
+    // 3. 初始化两个驱动
+    ESP_LOGI(TAG, "Initializing audio drivers...");
+    if (inmp441_i2s_init(&inmp441_config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize INMP441 driver");
+        vTaskDelete(NULL);
+    }
+    if (max98357_i2s_init(&max98357_config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize MAX98357 driver");
+        vTaskDelete(NULL);
+    }
+
+
+    wifi_init_sta();
+    ESP_LOGI(TAG, "Wi-Fi initialized, starting audio and speech recognition...");
+
+    while (1) {
+        // 等待直到Wi-Fi连接成功
+        if (wifi_is_connected()) {
+            if (!websocket_is_initialized()) {
+                // 1.客户端未初始化 -> 初始化WebSocket客户端，并连接到服务器
+                ESP_LOGI(TAG, "Wi-Fi is ready, initializing & starting WebSocket client...");
+                websocket_client_start();
+            } else if (!websocket_is_connected()) {
+                // 2.客户端已初始化，但未连接到服务器 -> 
+                //  i.正在连接中
+                if (websocket_is_connecting()) {
+                    ESP_LOGI(TAG, "WebSocket client is connecting, waiting...");
+                } else {
+                    // ii.未连接，尝试重连
+                    ESP_LOGI(TAG, "WebSocket client is not connected, attempting to reconnect...");
+                    websocket_reconnect();
+                }
+            } else {
+                break;
+            }
+        } else {
+            ESP_LOGW(TAG, "Wi-Fi is not connected. Waiting...");
+            // 如果Wi-Fi断开, 确保WebSocket客户端也停止
+            if (websocket_is_connected()) {
+                ESP_LOGI(TAG, "Wi-Fi connection lost, stopping WebSocket client.");
+                websocket_client_close_clean();
+            }
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+    
+    
+    ESP_LOGI(TAG, "Audio drivers initialized.");
+}
+
+
+
+void test_send_audio() {
+    wifi_init_sta();
+    ESP_LOGI(TAG, "Wi-Fi initialized, starting audio and speech recognition...");
+
+    while (1) {
+        // 等待直到Wi-Fi连接成功
+        if (wifi_is_connected()) {
+            if (!websocket_is_initialized()) {
+                // 1.客户端未初始化 -> 初始化WebSocket客户端，并连接到服务器
+                ESP_LOGI(TAG, "Wi-Fi is ready, initializing & starting WebSocket client...");
+                websocket_client_start();
+            } else if (!websocket_is_connected()) {
+                // 2.客户端已初始化，但未连接到服务器 -> 
+                //  i.正在连接中
+                if (websocket_is_connecting()) {
+                    ESP_LOGI(TAG, "WebSocket client is connecting, waiting...");
+                } else {
+                    // ii.未连接，尝试重连
+                    ESP_LOGI(TAG, "WebSocket client is not connected, attempting to reconnect...");
+                    websocket_reconnect();
+                }
+            } else {
+                break;
+            }
+        } else {
+            ESP_LOGW(TAG, "Wi-Fi is not connected. Waiting...");
+            // 如果Wi-Fi断开, 确保WebSocket客户端也停止
+            if (websocket_is_connected()) {
+                ESP_LOGI(TAG, "Wi-Fi connection lost, stopping WebSocket client.");
+                websocket_client_close_clean();
+            }
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+    ESP_LOGI(TAG, "Audio drivers initialized.");
+
+    sr_start();
 }
 
 

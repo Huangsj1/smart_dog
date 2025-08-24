@@ -6,12 +6,16 @@
 #include "esp_websocket_client.h"
 #include "cJSON.h"
 
+#include "max98357_i2s.h"
+
 // 包含我们自己创建的头文件
 #include "websocket_client.h"
 
 // --- 模块内部定义 ---
 // !!! 重要: 请将此处的IP地址和端口替换为您Python服务器的实际地址 !!!
-#define WEBSOCKET_URI "ws://192.168.31.55:8000/ws" // 替换为您电脑的实际IP地址（不能用localhost，因为这是在开发板上面运行的，不是本机）
+#define WEBSOCKET_URI "ws://192.168.1.9:8000/ws" // 替换为您电脑的实际IP地址（不能用localhost，因为这是在开发板上面运行的，不是本机）
+// #define WEBSOCKET_URI "ws://192.168.1.15:8000/ws" 
+
 
 static const char *TAG = "WEBSOCKET_CLIENT";
 
@@ -188,6 +192,7 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
                 ESP_LOGI(TAG, "Received binary data of length %d, payload length: %d", data->data_len, data->payload_len);
                 // TODO: 将此音频数据送入音频播放任务的队列中
                 // audio_player_enqueue(data->data_ptr, data->data_len);
+                max98357_i2s_write(data->data_ptr, data->data_len, NULL, portMAX_DELAY);
             }
             break;
         case WEBSOCKET_EVENT_ERROR:

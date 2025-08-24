@@ -16,6 +16,7 @@
 #include "inmp441_i2s.h"
 #include "max98357_i2s.h"
 #include "i2s_pins.h"
+#include "websocket_client.h"
 
 #include "sr.h"
 
@@ -257,11 +258,14 @@ static void detect_Task(void *arg)
     ESP_LOGI(TAG, "------------detect start------------");
 
     while (task_flag) {
-        // 3.从AFE获取音频数据
-        afe_fetch_result_t* res = afe_handle->fetch(afe_data); 
+        // 3.从AFE获取音频数据（res->data_size = 1024（字节数=512*2））
+        afe_fetch_result_t* res = afe_handle->fetch(afe_data);
 
         // 在MAX98357中播放
         max98357_i2s_write(res->data, res->data_size, NULL, portMAX_DELAY);
+        // 发送给服务器播放
+        websocket_client_send_binary((const uint8_t *)res->data, res->data_size);
+
 
         if (!res || res->ret_value == ESP_FAIL) {
             ESP_LOGE(TAG, "fetch error!");

@@ -14,7 +14,7 @@ static const char *TAG = "AUDIO_ECHO";
 
 // 音频参数，必须对录音和播放保持一致
 #define ECHO_SAMPLE_RATE     (16000)
-#define ECHO_BITS_PER_SAMPLE (I2S_DATA_BIT_WIDTH_32BIT)
+#define ECHO_BITS_PER_SAMPLE (I2S_DATA_BIT_WIDTH_16BIT)
 
 // 用于在录音和播放之间传递数据的缓冲区大小
 #define ECHO_BUFFER_SIZE     (2048)

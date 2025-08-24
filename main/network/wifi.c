@@ -33,8 +33,8 @@ typedef struct {
 
 // 初始默认值，实际使用时会被用户输入覆盖
 static wifi_credentials_t wifi_config_data = {
-    .ssid = "Xiaomi_251D",      // TODO: 后续从NVS或网页配置写入
-    .password = "Aa123456"
+    .ssid = "USER_306633",      // TODO: 后续从NVS或网页配置写入
+    .password = "31531515"
 };
 
 
